@@ -1,0 +1,236 @@
+/* Estilos generales */
+body, html {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    font-family: 'DM Sans', sans-serif;
+}
+
+main.container {
+    flex-grow: 1;
+}
+
+/* Header */
+.header {
+    background-color: #2C3E50;
+    color: white;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    padding: 1rem 0;    
+}
+
+.brand {
+    font-size: 1.8rem;
+    color: white;
+}
+
+.welcome-text {
+    margin-right: 1rem;
+    font-size: 1rem;
+}
+
+/* Navegación */
+.navbar {
+    background-color: #2C3E50;
+    padding: 0.5rem 0;
+    margin-top: 4rem;  /* Para ajustarse debajo del header */
+    position: fixed;
+    width: 100%;
+    z-index: 999;
+    box-shadow: 0 6px 15px rgba(255, 140, 66, 0.8);
+}
+
+.navbar .nav {
+    justify-content: center;
+    width: 100%;
+}
+
+.navbar .nav-link {
+    color: #A9BDC8;
+    font-size: 1rem;
+    padding: 0.5rem 1.5rem;
+    transition: color 0.3s, border-bottom 0.3s;
+}
+
+.navbar .nav-link:hover {
+    color: #FF8C42;
+    border-bottom: 2px solid #FF8C42;
+}
+
+.navbar .nav-link.active {
+    color: #FF8C42;
+}
+
+/* Footer */
+.footer {
+    background-color: #2C3E50;
+    color: white;
+    text-align: center;
+    padding: 1rem 0;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    box-shadow: 0 -6px 15px rgba(255, 140, 66, 0.8);
+}
+
+/* Estilos para el contenido principal */
+main {
+    padding-top: 8rem;  /* Ajuste para la barra de navegación fija */
+    padding-bottom: 6rem; /* Ajuste para el footer fijo */
+}
+
+/* Estilos adicionales */
+.flatpickr-input {
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+}
+
+textarea#body {
+    width: 100%;
+    min-height: 150px;
+}
+/* Estilo para tablas */
+table.table {
+    font-size: 0.875rem; /* Reduce el tamaño del texto en la tabla */
+    width: 100%;
+    margin-bottom: 20px;
+    border-collapse: collapse; /* Asegura que las celdas estén juntas sin separación */
+}
+
+table.table th, table.table td {
+    text-align: center; /* Centra el contenido horizontalmente */
+    vertical-align: middle; /* Centra el contenido verticalmente */
+    padding: 8px; /* Añade espacio alrededor del contenido para mejorar la legibilidad */
+    border: 1px solid #dee2e6; /* Añade un borde para separar las celdas */
+}
+
+/* Encabezados de la tabla */
+table.table th {
+    background-color: #f8f9fa; /* Fondo claro para los encabezados */
+    font-weight: 700; /* Asegura que los títulos tengan un peso mayor */
+    text-transform: uppercase;
+}
+
+/* Estilo para las filas de la tabla */
+table.table tr:nth-child(even) {
+    background-color: #f2f2f2; /* Color de fondo alterno para mejorar la legibilidad */
+}
+/* Estilo para los botones dentro de la tabla */
+table.table .btn {
+    font-size: 0.8rem; /* Reducir el tamaño del texto del botón */
+    padding: 4px 8px; /* Reducir el padding para hacer los botones más compactos */
+    line-height: 1; /* Asegura que el botón no se estire verticalmente */
+    border-radius: 4px; /* Bordes más suaves en los botones */
+    display: inline-block;
+    vertical-align: middle; /* Alinear verticalmente los botones en la fila */
+}
+
+/* Ajuste de botones */
+table.table .btn-sm {
+    font-size: 0.8rem;
+    padding: 2px 6px;
+}
+
+/* Espaciado entre botones */
+table.table .btn + .btn {
+    margin-left: 5px; /* Espacio entre botones si hay más de uno */
+}
+
+/* Color para la palabra 'Quest' en el título */
+.text-orange {
+    color: #FF8C42; /* Color naranja */
+}
+
+.bg-dark {
+    background-color: #2C3E50 !important; /* O el color exacto que estabas usando antes */
+}
+/* Color naranja para botones principales */
+.btn-primary {
+    background-color: #FF8C42; /* El mismo color naranja que "QUEST" */
+    border-color: #FF8C42; /* Asegurar que el borde también sea naranja */
+    color: #fff; /* Texto en blanco */
+}
+
+.btn-primary:hover {
+    background-color: #e67a36; /* Un naranja ligeramente más oscuro cuando se pase el ratón por encima */
+    border-color: #e67a36; /* También oscurecer el borde en el hover */
+}
+
+/* Asegurar que el botón sea visible sobre cualquier fondo */
+.btn-primary:focus, .btn-primary:active {
+    background-color: #FF8C42; /* Mantener el color original en focus o active */
+    border-color: #FF8C42; /* Mantener el borde del mismo color */
+    box-shadow: 0 0 0 0.2rem rgba(255, 140, 66, 0.5); /* Sombra ligera en estado de foco o clic */
+}
+
+/* Ajuste de márgenes izquierdo y derecho al 50% del tamaño actual */
+.container {
+    max-width: 90%; /* Ajusta el ancho del contenedor, reduciendo los márgenes horizontales */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Opcional: para pantallas pequeñas, restaurar el margen predeterminado */
+@media (max-width: 768px) {
+    .container {
+        max-width: 100%; /* En pantallas pequeñas, deja el contenedor al 100% del ancho */
+    }
+}
+
+/* Estilo para las tablas de previsualización, sin encabezado en negrita ni mayúsculas */
+.table-preview th {
+    font-weight: normal !important;
+    text-transform: none !important;
+    background-color: #ffc6a3  !important; /* Fondo naranja para las filas impares */
+}
+
+/* Centramos el contenido de las celdas */
+.table-preview td {
+    text-align: center !important;
+}
+
+/* Aseguramos que no se copien los estilos generales */
+.table-preview {
+    font-size: inherit !important;
+    border-collapse: collapse !important; /* Asegura que las celdas estén juntas sin separación */
+    width: 100% !important;
+    margin-bottom: 20px !important;
+}
+
+/* Filas alternadas en naranja y blanco */
+.table-preview tr:nth-child(odd) {
+    background-color: #ffc6a3 !important; /* Fondo naranja para las filas impares */
+}
+
+.table-preview tr:nth-child(even) {
+    background-color: #FFFFFF !important; /* Fondo blanco para las filas pares */
+}
+
+/* Aseguramos que el texto sea visible en ambas filas */
+.table-preview tr:nth-child(odd) td {
+    color: #000000 !important; /* Texto blanco en las filas con fondo naranja */
+    
+}
+
+.table-preview tr:nth-child(even) td {
+    color: #000000 !important; /* Texto negro en las filas con fondo blanco */
+    background-color: #ffc6a3 !important; /* Fondo naranja para las filas impares */
+}
+
+/* Botón para cerrar previsualización */
+.btn-close-preview {
+    background-color: #FF8C42;
+    border-color: #FF8C42;
+    color: white;
+    margin-top: 20px;
+}
+
+.btn-close-preview:hover {
+    background-color: #e67a36;
+    border-color: #e67a36;
+}

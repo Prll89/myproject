@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}Registro - PRice2Quest{% endblock %}
+
+{% block header_extra %}{% endblock %}
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Registro</h1>
+    <p>Por favor, selecciona una opción para continuar:</p>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="choice" id="company" value="company" required>
+            <label class="form-check-label" for="company">
+                Registrar una Empresa
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="choice" id="user" value="user" required>
+            <label class="form-check-label" for="user">
+                Registrar un Usuario
+            </label>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Continuar</button>
+    </form>
+</div>
+{% endblock %}

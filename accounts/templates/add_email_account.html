@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Agregar Cuenta de Correo{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Agregar Cuenta de Correo</h2>
+
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Agregar Cuenta</button>
+    </form>
+</div>
+{% endblock %}

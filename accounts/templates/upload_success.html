@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    <section class="content-container">
+        <h2>Subida Exitosa</h2>
+        <p>Tu archivo se ha subido correctamente.</p>
+        <a href="{% url 'dashboard' %}" class="btn">Volver al Dashboard</a>
+    </section>
+{% endblock %}
+
+<style>
+    .content-container {
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+        background-color: #f4f4f4;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+
+    .content-container h2 {
+        font-family: 'Cairo Play', sans-serif;
+    }
+
+    .btn {
+        margin-top: 20px;
+        background-color: #1c1c1c;
+        color: #ffffff;
+        padding: 10px;
+        border: none;
+        cursor: pointer;
+        font-family: 'Roboto', sans-serif;
+        border-radius: 5px;
+        text-decoration: none;
+    }
+</style>
+

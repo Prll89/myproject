@@ -1,0 +1,30 @@
+<!-- templates/registration/register_company.html -->
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Registrar Empresa - PRice2Quest{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Registrar Empresa</h1>
+    <form method="post" class="needs-validation" novalidate>
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="mb-3">
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.help_text %}
+                    <div class="form-text">{{ field.help_text }}</div>
+                {% endif %}
+                {% if field.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ field.errors }}
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary">Registrar Empresa</button>
+    </form>
+</div>
+{% endblock %}

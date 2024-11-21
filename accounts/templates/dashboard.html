@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        .menu {
+            display: flex;
+            justify-content: center;
+            list-style-type: none;
+        }
+        .menu li {
+            margin: 0 15px;
+        }
+    </style>
+</head>
+<body>
+    <div style="display: flex; justify-content: space-between; padding: 10px; background-color: #f4f4f4;">
+        <div>Bienvenido, {{ user.username }}</div>
+        <div><a href="{% url 'logout %}">Cerrar sesión</a></div>
+    </div>
+    <h1>Estudios</h1>
+    <ul class="menu">
+        <li><a href="{% url 'upload_file' %}">Procesar mediciones</a></li>
+        <li><a href="{% url 'send_emails' %}">Enviar correos</a></li>
+        <li><a href="{% url 'contact_list' %}">Lista de contactos</a></li>
+        <li><a href="{% url 'calendar' %}">Calendario</a></li>
+    </ul>
+</body>
+</html>

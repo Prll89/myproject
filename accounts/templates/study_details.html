@@ -1,0 +1,248 @@
+<!-- accounts/templates/study_details.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}Detalles del Estudio{% endblock %}
+
+{% block content %}
+    <h1 class="mb-4">Detalles del Estudio</h1>
+
+    <!-- Información del Estudio -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <p><strong>Expediente:</strong> {{ study.expediente }}</p>
+            <p><strong>Nombre del Proyecto:</strong> {{ study.project_name }}</p>
+            <p><strong>Fecha de Entrega:</strong> {{ study.due_date }}</p>
+            <p><strong>Estado del Estudio:</strong> {{ estado }}</p>
+        </div>
+    </div>
+    
+    <!-- Botones de Exportar y Imprimir -->
+    <div class="mb-3">
+        <a href="{% url 'export_study_excel' study_id=study.id %}" class="btn btn-success me-2">Exportar a Excel</a>
+        <a href="{% url 'print_study_pdf' study_id=study.id %}" class="btn btn-danger">Imprimir a PDF</a>
+    </div>
+
+    <!-- Archivos Generados -->
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Nombre del Archivo</th>
+                    <th>Destinatarios</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file_id, file_data in correos_enviados.items %}
+                <tr data-file-id="{{ file_id }}">
+                    <!-- Asignar background-color al primer <td> basado en file_status -->
+                    <td style="
+                        {% if file_data.file_status == 'Recibido' %}
+                            background-color: #d4edda;
+                        {% elif file_data.file_status == 'Rechazado' %}
+                            background-color: #f8d7da;
+                        {% elif file_data.file_status == 'Reclamado' %}
+                            background-color: #fff3cd;
+                        {% else %}
+                            background-color: #ffffff;
+                        {% endif %}
+                        color: #000000;
+                        padding: 5px;
+                        border-radius: 4px;
+                    ">
+                        {{ file_data.file.original_name }}
+                        <!-- Botones de Previsualizar y Descargar -->
+                        <a href="{% url 'preview_file' file_id=file_id %}" class="btn btn-sm btn-primary ms-2">Previsualizar</a>
+                        <a href="{% url 'download_file' file_id=file_id %}" class="btn btn-sm btn-success ms-2">Descargar</a>
+                    </td>
+                    <td>
+                        <ul class="list-unstyled mb-0">
+                            {% for recipient in file_data.recipients %}
+                            <!-- Determinar el color de fondo del destinatario -->
+                            <li class="recipient-item" data-recipient-id="{{ recipient.id }}" style="
+                                {% if recipient.status == 'Reclamado' %}
+                                    background-color: #fff3cd;
+                                {% elif recipient.status == 'Recibido' %}
+                                    background-color: #d4edda;
+                                {% elif recipient.status == 'Rechazado' %}
+                                    background-color: #f8d7da;
+                                {% else %}
+                                    background-color: #f2f2f2;
+                                {% endif %}
+                                color: #000000;
+                                padding: 5px;
+                                border-radius: 4px;
+                                margin-bottom: 10px;
+                            ">
+                                <div class="flex-grow-1">
+                                    {{ recipient.name }} - {{ recipient.email }} - {{ recipient.phone }}
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                    <td>
+                        <ul class="list-unstyled mb-0">
+                            {% for recipient in file_data.recipients %}
+                            <li class="mb-2">
+                                <!-- Determinar el color de fondo del select -->
+                                <select name="estado_{{ file_data.file.id }}_{{ recipient.id }}" 
+                                    class="form-select estado-contacto select-auto-width"
+                                    data-file-id="{{ file_data.file.id }}" 
+                                    data-recipient-id="{{ recipient.id }}"
+                                    style="
+                                        {% if recipient.status == 'Reclamado' %}
+                                            background-color: #fff3cd; color: #000000;
+                                        {% elif recipient.status == 'Recibido' %}
+                                            background-color: #d4edda; color: #000000;
+                                        {% elif recipient.status == 'Rechazado' %}
+                                            background-color: #f8d7da; color: #000000;
+                                        {% else %}
+                                            background-color: #f2f2f2; color: #000000;
+                                        {% endif %}
+                                    ">
+                                    <option value="Pendiente" {% if recipient.status == "Pendiente" %}selected{% endif %}>Pendiente</option>
+                                    <option value="Reclamado" {% if recipient.status == "Reclamado" %}selected{% endif %}>Reclamado</option>
+                                    <option value="Recibido" {% if recipient.status == "Recibido" %}selected{% endif %}>Recibido</option>
+                                    <option value="Rechazado" {% if recipient.status == "Rechazado" %}selected{% endif %}>Rechazado</option>
+                                </select>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Función para obtener el CSRF token desde las cookies
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Verificar si el nombre de la cookie coincide
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Función para determinar el estado global del archivo
+    function determineFileStatus(fileId) {
+        const selects = document.querySelectorAll(`select[data-file-id="${fileId}"]`);
+        const statuses = Array.from(selects).map(select => select.value);
+        const uniqueStatuses = [...new Set(statuses)];
+
+        console.log(`File ID: ${fileId}, Statuses:`, statuses, 'Unique:', uniqueStatuses);
+
+        if (uniqueStatuses.length === 1 && uniqueStatuses[0] !== 'Pendiente') {
+            return uniqueStatuses[0];
+        }
+        return 'Pendiente';
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const csrftoken = getCookie('csrftoken');
+        const selects = document.querySelectorAll('.estado-contacto');
+
+        selects.forEach(function(select) {
+            select.addEventListener('change', function() {
+                const fileId = this.getAttribute('data-file-id');
+                const recipientId = this.getAttribute('data-recipient-id');
+                const nuevo_estado = this.value;
+
+                console.log(`Changing status for Recipient ID: ${recipientId}, File ID: ${fileId} to ${nuevo_estado}`);
+
+                fetch("{% url 'update_estado_contacto' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: new URLSearchParams({
+                        'file_id': fileId,
+                        'recipient_id': recipientId,
+                        'nuevo_estado': nuevo_estado
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if(data.message){
+                        console.log(`Received success message: ${data.message}`);
+                        // Encontrar el <li> correspondiente a este destinatario
+                        const recipientItem = document.querySelector(`li.recipient-item[data-recipient-id="${recipientId}"]`);
+
+                        if(!recipientItem){
+                            console.error('No se encontró el elemento recipient-item para ID:', recipientId);
+                            return;
+                        }
+
+                        // Actualizar el fondo del <li> y mantener el texto negro
+                        if(nuevo_estado === 'Reclamado'){
+                            recipientItem.style.backgroundColor = '#fff3cd';
+                        } else if(nuevo_estado === 'Recibido'){
+                            recipientItem.style.backgroundColor = '#d4edda';
+                        } else if(nuevo_estado === 'Rechazado'){
+                            recipientItem.style.backgroundColor = '#f8d7da';
+                        } else {
+                            recipientItem.style.backgroundColor = '#f2f2f2';
+                        }
+                        recipientItem.style.color = '#000000';
+
+                        // Actualizar el fondo del <select> y mantener el texto negro
+                        const selectElement = this;
+                        if(nuevo_estado === 'Reclamado'){
+                            selectElement.style.backgroundColor = '#fff3cd';
+                        } else if(nuevo_estado === 'Recibido'){
+                            selectElement.style.backgroundColor = '#d4edda';
+                        } else if(nuevo_estado === 'Rechazado'){
+                            selectElement.style.backgroundColor = '#f8d7da';
+                        } else {
+                            selectElement.style.backgroundColor = '#f2f2f2';
+                        }
+                        selectElement.style.color = '#000000';
+
+                        // Actualizar el fondo del <td> del nombre del archivo basado en la respuesta del servidor
+                        const newFileStatus = data.file_status; // Usar el valor recibido del servidor
+                        console.log(`New File Status for File ID ${fileId}: ${newFileStatus}`);
+                        const fileNameTd = document.querySelector(`tr[data-file-id="${fileId}"] td:first-child`);
+                        if(fileNameTd){
+                            if(newFileStatus === 'Reclamado'){
+                                fileNameTd.style.backgroundColor = '#fff3cd';
+                            } else if(newFileStatus === 'Recibido'){
+                                fileNameTd.style.backgroundColor = '#d4edda';
+                            } else if(newFileStatus === 'Rechazado'){
+                                fileNameTd.style.backgroundColor = '#f8d7da';
+                            } else {
+                                fileNameTd.style.backgroundColor = '#ffffff';
+                            }
+                            console.log(`Updated background color for File ID ${fileId} to ${newFileStatus}`);
+                        }
+                    } else if(data.error){
+                        console.error(`Error from server: ${data.error}`);
+                        // Opcional: Resaltar el select en rojo
+                        this.style.borderColor = '#dc3545'; // Rojo Bootstrap
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Manejar error sin mostrar notificaciones
+                    // Opcional: Resaltar el select en rojo
+                    this.style.borderColor = '#dc3545'; // Rojo Bootstrap
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

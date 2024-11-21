@@ -1,0 +1,31 @@
+<!-- templates/accounts/approve_users.html -->
+
+<h2>Usuarios Pendientes de Aprobación</h2>
+
+<table>
+    <tr>
+        <th>Nombre de Usuario</th>
+        <th>Nombre Completo</th>
+        <th>Departamento</th>
+        <th>Acciones</th>
+    </tr>
+    {% for profile in pending_users %}
+    <tr>
+        <td>{{ profile.user.username }}</td>
+        <td>{{ profile.user.first_name }}</td>
+        <td>{{ profile.department.name if profile.department else 'N/A' }}</td>
+        <td>
+            <form method="post" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="user_id" value="{{ profile.id }}">
+                <button type="submit" name="action" value="approve">Aprobar</button>
+            </form>
+            <form method="post" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="user_id" value="{{ profile.id }}">
+                <button type="submit" name="action" value="reject">Rechazar</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table>

@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Previsualización de {{ file_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Previsualización de {{ file_name }}</h2>
+
+    <!-- Tabla de previsualización de archivo con filas alternadas en naranja y blanco -->
+    <div class="table-responsive">
+        <table class="table table-preview">
+            <thead>
+                <tr>
+                    {% for col in data.0 %}
+                    <th>{{ col }}</th> <!-- Sin mayúsculas ni negrita -->
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in data|slice:"1:" %}
+                <tr>
+                    {% for cell in row %}
+                    <td>{{ cell }}</td> <!-- Contenido centrado -->
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Botón para cerrar previsualización y regresar a la página de upload -->
+    <a href="{% url 'upload_file' %}" class="btn btn-close-preview">Cerrar Previsualización</a>
+</div>
+{% endblock %}

@@ -1,0 +1,125 @@
+<!-- accounts/templates/contact_list.html -->
+
+{% extends 'base.html' %}
+{% block title %}Contactos{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Contactos</h2>
+    
+    <!-- Formulario para agregar o editar contacto -->
+    <div class="mb-4">
+        <form method="post" action="{% url 'contact_list' %}">
+            {% csrf_token %}
+            {% if edit_contact %}
+                <!-- Campo oculto para indicar que se está editando un contacto -->
+                <input type="hidden" name="edit_id" value="{{ edit_contact.id }}">
+            {% endif %}
+            <div class="mb-3">
+                <label for="name" class="form-label">Nombre</label>
+                <input type="text" class="form-control" id="name" name="name" required
+                       value="{{ edit_contact.name|default:'' }}">
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email" required
+                       value="{{ edit_contact.email|default:'' }}">
+            </div>
+            <div class="mb-3">
+                <label for="phone" class="form-label">Teléfono</label>
+                <input type="text" class="form-control" id="phone" name="phone"
+                       value="{{ edit_contact.phone|default:'' }}">
+            </div>
+            <div class="mb-3">
+                <label for="gremio" class="form-label">Gremio</label>
+                <input type="text" class="form-control" id="gremio" name="gremio" placeholder="Ejemplo: Pintura, Pladur"
+                       value="{{ edit_contact.gremio|default:'' }}">
+            </div>
+            {% if edit_contact %}
+                <button type="submit" class="btn btn-primary" name="save_changes">Guardar Cambios</button>
+                <a href="{% url 'contact_list' %}" class="btn btn-secondary">Cancelar</a>
+            {% else %}
+                <button type="submit" class="btn btn-success" name="add_contact">Agregar Contacto</button>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Campo de Búsqueda para Filtrar Contactos -->
+    <div class="mb-3">
+        <input type="text" id="searchInput" class="form-control" placeholder="Buscar contactos...">
+    </div>
+
+    <!-- Tabla de contactos existentes -->
+    <table class="table table-bordered" id="contactsTable">
+        <thead class="table-light">
+            <tr>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Teléfono</th>
+                <th>Gremios</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in contacts_with_gremios %}
+                <tr>
+                    <td>{{ item.contact.name }}</td>
+                    <td>{{ item.contact.email }}</td>
+                    <td>{{ item.contact.phone }}</td>
+                    <td>
+                        {% for gremio in item.gremios %}
+                            <span style="background-color: {{ gremio.background_color }}; color: {{ gremio.text_color }}; padding: 3px 5px; border-radius: 4px; margin-right: 2px;">{{ gremio.name }}</span>
+                        {% endfor %}
+                    </td>
+                    <td>
+                        <!-- Botón Editar -->
+                        <a href="{% url 'contact_list' %}?edit_id={{ item.contact.id }}" class="btn btn-primary btn-sm">Editar</a>
+                        
+                        <!-- Botón Eliminar -->
+                        <form method="post" action="{% url 'contact_list' %}" style="display:inline;" onsubmit="return confirm('¿Estás seguro de eliminar este contacto?');">
+                            {% csrf_token %}
+                            <input type="hidden" name="contact_id" value="{{ item.contact.id }}">
+                            <button type="submit" class="btn btn-danger btn-sm" name="delete_contact">Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- JavaScript para Filtrado de Contactos -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const contactsTable = document.getElementById('contactsTable');
+        const tbody = contactsTable.getElementsByTagName('tbody')[0];
+        const rows = tbody.getElementsByTagName('tr');
+
+        searchInput.addEventListener('input', function() {
+            const filter = searchInput.value.toLowerCase();
+
+            for (let i = 0; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName('td');
+                let match = false;
+
+                // Verificar cada celda en la fila
+                for (let j = 0; j < cells.length - 1; j++) { // Excluir la columna de acciones
+                    const cellText = cells[j].textContent.toLowerCase();
+                    if (cellText.indexOf(filter) > -1) {
+                        match = true;
+                        break;
+                    }
+                }
+
+                if (match) {
+                    rows[i].style.display = '';
+                } else {
+                    rows[i].style.display = 'none';
+                }
+            }
+        });
+    });
+</script>
+
+{% endblock %}

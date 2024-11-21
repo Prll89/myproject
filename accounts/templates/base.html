@@ -1,0 +1,124 @@
+<!-- templates/base.html -->
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PRice2Quest{% endblock %}</title>
+    
+    <!-- Google Fonts: DM Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    {% block head %}{% endblock %}
+</head>
+<body class="d-flex flex-column min-vh-100">
+    
+    <!-- Header Section con Sombra Naranja -->
+    <header class="header">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="brand">
+                <span class="text-orange">PR</span><span class="text-white">ice</span><span class="text-orange">2</span><span class="text-white">Quest</span>
+            </div>
+            {% block header_extra %}
+                {% if user.is_authenticated %}
+                <div class="d-flex align-items-center">
+                    <span class="welcome-text me-3">Bienvenido, {{ user.username }}</span>
+                    <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">Cerrar sesión</a>
+                </div>
+                {% endif %}
+            {% endblock %}
+        </div>
+    </header>
+
+    <!-- Navigation Bar (Fija, centrada y con menor altura) -->
+    {% block navbar %}
+        {% if user.is_authenticated %}
+        <nav class="navbar navbar-expand-lg">
+            <div class="container justify-content-center">
+                <ul class="nav">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'studies' %}active{% endif %}" href="{% url 'studies' %}">Estudios</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'upload_file' %}active{% endif %}" href="{% url 'upload_file' %}">Paquetizar</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'send_emails' %}active{% endif %}" href="{% url 'send_emails' %}">Enviar Correos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'reclamar' %}active{% endif %}" href="{% url 'reclamar' %}">Reclamar</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'contact_list' %}active{% endif %}" href="{% url 'contact_list' %}">Contactos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'calendar' or request.resolver_match.url_name == 'calendar_day_view' %}active{% endif %}" href="{% url 'calendar' %}">Calendario</a>
+                    </li>
+
+                    <!-- Menú Administrativo para Administradores -->
+                    {% if user.userprofile.role in ['ADMIN_TOTAL', 'ADMIN_DEPARTAMENTO'] %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}" href="{% url 'admin_dashboard' %}">Administración</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </nav>
+        {% endif %}
+    {% endblock %}
+
+    <!-- Main Content -->
+    <main class="container my-4 mt-5">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer con Sombra Naranja -->
+    <footer class="footer bg-dark text-white text-center py-2 mt-auto">
+        <p>&copy; 2024 <span class="text-orange">PR</span><span class="text-white">ice</span><span class="text-orange">2</span><span class="text-white">Quest</span>. Todos los derechos reservados.</p>
+    </footer>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Flatpickr JS for date and time picker -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <!-- TinyMCE for rich text editor -->
+    <script src="https://cdn.tiny.cloud/1/tu_clave_api/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+
+    <!-- Optional Flatpickr time picker configuration -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            flatpickr('.datetimepicker', {
+                enableTime: true,
+                dateFormat: 'Y-m-d H:i',
+                altInput: true,
+                altFormat: 'F j, Y h:i K',
+                time_24hr: true
+            });
+        });
+
+        // TinyMCE initialization for rich text editor in textareas
+        tinymce.init({
+            selector: 'textarea#body',
+            plugins: 'lists link image charmap preview anchor textcolor colorpicker',
+            toolbar: 'undo redo | bold italic underline | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent',
+            menubar: false,
+            height: 300,
+            forced_root_block: '',  
+            force_br_newlines: true,
+            force_p_newlines: false,
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

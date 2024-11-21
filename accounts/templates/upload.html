@@ -1,0 +1,242 @@
+<!-- templates/upload.html -->
+
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="container mt-5">
+    <h1 class="mb-4">Paquetizar</h1>
+
+    <!-- Mostrar Mensajes -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Formulario de Carga de Archivos -->
+    <form method="POST" enctype="multipart/form-data" id="uploadForm">
+        {% csrf_token %}
+
+        <!-- Campo de Selección de Estudio -->
+        <div class="mb-3">
+            <label for="id_study" class="form-label">Seleccionar Estudio</label>
+            {{ form.study }}
+            {% if form.study.errors %}
+                <div class="text-danger">
+                    {{ form.study.errors }}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Campo de Selección de Acción -->
+        <div class="mb-3">
+            <label class="form-label">Seleccione Acción</label>
+            <div class="form-check">
+                {% for radio in form.action %}
+                    <div class="form-check">
+                        {{ radio.tag }}
+                        {{ radio.choice_label }}
+                    </div>
+                {% endfor %}
+            </div>
+            {% if form.action.errors %}
+                <div class="text-danger">
+                    {{ form.action.errors }}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Sección para Procesar Mediciones -->
+        <div id="process_section" style="display: none;">
+            <!-- Campo Columna de Inicio -->
+            <div class="mb-3">
+                <label for="id_start_column" class="form-label">Columna de Inicio</label>
+                {{ form.start_column }}
+                {% if form.start_column.errors %}
+                    <div class="text-danger">
+                        {{ form.start_column.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Campo Columna de Fin -->
+            <div class="mb-3">
+                <label for="id_end_column" class="form-label">Columna de Fin</label>
+                {{ form.end_column }}
+                {% if form.end_column.errors %}
+                    <div class="text-danger">
+                        {{ form.end_column.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Campo de Archivo Excel -->
+            <div class="mb-3">
+                <label for="id_file_excel" class="form-label">Archivo Excel</label>
+                {{ form.file_excel }}
+                {% if form.file_excel.errors %}
+                    <div class="text-danger">
+                        {{ form.file_excel.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Botón para Procesar Mediciones -->
+            <button type="submit" class="btn btn-success">Procesar Mediciones</button>
+        </div>
+
+        <!-- Sección para Subir Paquetes -->
+        <div id="upload_section" style="display: none;">
+            <!-- Campo de Archivo ZIP -->
+            <div class="mb-3">
+                <label for="id_file_zip" class="form-label">Archivo ZIP</label>
+                {{ form.file_zip }}
+                {% if form.file_zip.errors %}
+                    <div class="text-danger">
+                        {{ form.file_zip.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Botón para Subir Paquetes -->
+            <button type="submit" class="btn btn-success">Subir Paquetes</button>
+        </div>
+    </form>
+
+    <!-- Mostrar Detalles del Estudio Seleccionado -->
+    {% if selected_study %}
+        <div class="mt-5">
+            <h2>Detalles del Estudio</h2>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{{ selected_study.expediente }} - {{ selected_study.project_name }}</h5>
+                    <p class="card-text">
+                        <strong>Estado:</strong> {{ selected_study.estado }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Mostrar Sesiones de Procesamiento -->
+    <div class="mt-5">
+        {% if processing_sessions %}
+            <h2>Sesiones de Procesamiento</h2>
+            {% for session in processing_sessions %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Sesión {{ forloop.counter }}</h5>
+                        <p class="card-text">Procesada el {{ session.processed_at|date:"Y-m-d H:i:s" }}</p>
+
+                        <!-- Tabla de Archivos Procesados -->
+                        {% if session.processed_files.all %}
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre del Archivo</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for file in session.processed_files.all|dictsort:"original_name" %}
+                                        <tr>
+                                            <td>{{ file.original_name }}</td>
+                                            <td>
+                                                <a href="{{ file.file.url }}" class="btn btn-primary btn-sm" target="_blank">Descargar</a>
+                                                <a href="{% url 'preview_file' file.id %}" class="btn btn-info btn-sm" target="_blank">Previsualizar</a>
+                                                <form method="POST" action="{% url 'delete_processed_file' file.id %}" style="display: inline;">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Está seguro de eliminar este archivo?');">Eliminar</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            <!-- Botón para Descargar la Sesión como ZIP -->
+                            <a href="{% url 'download_zip_session' session.id %}" class="btn btn-secondary btn-sm">Descargar Sesión en ZIP</a>
+                            <!-- Botón para Eliminar la Sesión -->
+                            <form method="POST" action="{% url 'delete_processing_session' session.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Está seguro de eliminar esta sesión y todos sus archivos?');">Eliminar Sesión</button>
+                            </form>
+                        {% else %}
+                            <p>No se han procesado archivos para esta sesión.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            {% if selected_study %}
+                <div class="alert alert-warning">
+                    No se han procesado archivos para este estudio aún.
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+<!-- Scripts para Mostrar/Ocultar Secciones según la Acción Seleccionada -->
+<script>
+    function showAction(action) {
+        if (action === 'process_measurements') {
+            document.getElementById('process_section').style.display = 'block';
+            document.getElementById('upload_section').style.display = 'none';
+            // Establecer campos requeridos
+            document.getElementById('id_start_column').required = true;
+            document.getElementById('id_end_column').required = true;
+            document.getElementById('id_file_excel').required = true;
+            document.getElementById('id_file_zip').required = false;
+        } else if (action === 'upload_packages') {
+            document.getElementById('process_section').style.display = 'none';
+            document.getElementById('upload_section').style.display = 'block';
+            // Establecer campos requeridos
+            document.getElementById('id_start_column').required = false;
+            document.getElementById('id_end_column').required = false;
+            document.getElementById('id_file_excel').required = false;
+            document.getElementById('id_file_zip').required = true;
+        } else {
+            document.getElementById('process_section').style.display = 'none';
+            document.getElementById('upload_section').style.display = 'none';
+            // Remover requerimientos
+            document.getElementById('id_start_column').required = false;
+            document.getElementById('id_end_column').required = false;
+            document.getElementById('id_file_excel').required = false;
+            document.getElementById('id_file_zip').required = false;
+        }
+    }
+
+    // Al cambiar la selección de acción, mostrar/ocultar secciones
+    document.querySelectorAll('input[name="action"]').forEach((elem) => {
+        elem.addEventListener('change', function(event) {
+            var action = event.target.value;
+            showAction(action);
+        });
+    });
+
+    // Al cargar la página, mostrar la sección correspondiente si ya se seleccionó una acción
+    window.onload = function() {
+        var selectedAction = document.querySelector('input[name="action"]:checked');
+        if (selectedAction) {
+            showAction(selectedAction.value);
+        }
+    }
+
+    // Auto-reenviar el formulario al seleccionar un estudio para mostrar detalles y historial
+    document.getElementById('id_study').addEventListener('change', function() {
+        var selectedStudy = this.value;
+        if (selectedStudy) {
+            // Redirigir con el parámetro 'study' en la URL
+            window.location.href = "{% url 'upload_file' %}?study=" + selectedStudy;
+        } else {
+            // Si se selecciona "---------", recargar sin parámetros
+            window.location.href = "{% url 'upload_file' %}";
+        }
+    });
+</script>
+
+{% endblock %}

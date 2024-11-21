@@ -1,0 +1,244 @@
+<!-- accounts/templates/studies.html -->
+
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <h1>Estudios</h1>
+
+    <!-- Formulario para Agregar/Editar Estudio -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <form method="POST" enctype="multipart/form-data" id="study-form">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="expediente" class="form-label">Expediente</label>
+                    <input type="text" name="expediente" id="id_expediente" class="form-control" value="{{ study_to_edit.expediente|default_if_none:'' }}">
+                </div>
+                <div class="mb-3">
+                    <label for="project_name" class="form-label">Nombre del Proyecto</label>
+                    <input type="text" name="project_name" id="id_project_name" class="form-control" value="{{ study_to_edit.project_name|default_if_none:'' }}">
+                </div>
+                <div class="mb-3">
+                    <label for="due_date" class="form-label">Fecha de Entrega</label>
+                    <input type="text" name="due_date" id="id_due_date" class="form-control" value="{{ study_to_edit.due_date|date:"Y-m-d H:i" }}">
+                </div>
+                <button type="submit" class="btn {% if edit_mode %}btn-success{% else %}btn-primary{% endif %}" name="{% if edit_mode %}edit-study{% else %}add-study{% endif %}">
+                    {% if edit_mode %}Guardar Cambios{% else %}Agregar Estudio{% endif %}
+                </button>
+                
+                <!-- Botón para Abrir el Modal -->
+                <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#printPdfModal">
+                    Imprimir PDF Detalles Estudios
+                </button>
+
+                {% if edit_mode %}
+                <input type="hidden" name="study-id" value="{{ study_to_edit.id }}">
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Imprimir PDF Detalles Estudios -->
+    <div class="modal fade" id="printPdfModal" tabindex="-1" aria-labelledby="printPdfModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg"> <!-- Tamaño grande para mejor visualización -->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Seleccionar Estudios para Imprimir PDF</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <form method="POST" action="{% url 'print_selected_studies_pdf' %}">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <!-- Campo de Filtrado en el Modal -->
+                        <div class="mb-3">
+                            <input type="text" class="form-control mb-3" id="filter-modal-field" placeholder="Filtrar estudios" onkeyup="filterStudiesModal()">
+                        </div>
+                        <!-- Tabla de Estudios con Checkboxes -->
+                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                            <table class="table table-bordered" id="modal-study-table">
+                                <thead>
+                                    <tr>
+                                        <th>
+                                            <!-- Checkbox para Seleccionar/Deseleccionar Todos -->
+                                            <input type="checkbox" id="select-all-modal" onclick="toggleSelectAllModal(this)">
+                                        </th>
+                                        <th id="header-expediente" class="sortable" style="cursor: pointer;">Expediente &#x25B2;&#x25BC;</th>
+                                        <th id="header-project-name" class="sortable" style="cursor: pointer;">Nombre del Proyecto &#x25B2;&#x25BC;</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="modal-study-table-body">
+                                    {% for study in studies|dictsortreversed:"id" %}
+                                    <tr>
+                                        <td>
+                                            <input type="checkbox" name="selected_studies" value="{{ study.id }}" class="modal-checkbox">
+                                        </td>
+                                        <td>{{ study.expediente }}</td>
+                                        <td>{{ study.project_name }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="form-text">Selecciona los estudios que deseas incluir en el PDF.</div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Generar PDF</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Campo de Filtrado en la Tabla Principal -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <input type="text" class="form-control" placeholder="Filtrar estudios" id="filter-field" onkeyup="filterStudies()">
+        </div>
+    </div>
+
+    <!-- Tabla Principal de Estudios -->
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th><a href="?sort_by=expediente&order={{ expediente_order }}">Expediente</a></th>
+                    <th><a href="?sort_by=project_name&order={{ project_name_order }}">Nombre del Proyecto</a></th>
+                    <th><a href="?sort_by=due_date&order={{ due_date_order }}">Fecha de Entrega</a></th>
+                    <th><a href="?sort_by=estado&order={{ estado_order }}">Estado</a></th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="study-table-body">
+                {% for study in studies %}
+                <tr>
+                    <td>{{ study.expediente }}</td>
+                    <td>{{ study.project_name }}</td>
+                    <td>{{ study.due_date|date:"Y-m-d H:i" }}</td>
+                    <td>{{ study.estado }}</td>
+                    <td>
+                        <!-- Botón Editar -->
+                        <form method="POST" style="display:inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="study-id" value="{{ study.id }}">
+                            <button type="submit" name="edit-study" class="btn btn-warning btn-sm">Editar</button>
+                        </form>
+
+                        <!-- Botón Detalles -->
+                        <a href="{% url 'study_details' study.id %}" class="btn btn-info btn-sm">Detalles</a>
+
+                        <!-- Botón Eliminar -->
+                        <form method="POST" style="display:inline;" onsubmit="return confirm('¿Estás seguro de eliminar este estudio?');">
+                            {% csrf_token %}
+                            <input type="hidden" name="study-id" value="{{ study.id }}">
+                            <button type="submit" name="delete-study" class="btn btn-danger btn-sm">Eliminar</button>
+                        </form>
+                         <!-- Botones dinámicos según el estado -->
+                        {% if study.estado == 'Pendiente' %}
+                            <a href="{% url 'upload_file' %}" class="btn btn-primary btn-sm">Procesar</a>
+                        {% elif study.estado == 'Procesado' %}
+                            <a href="{% url 'send_emails' %}" class="btn btn-success btn-sm">Enviar</a>
+                        {% elif study.estado == 'Enviado' %}
+                            <a href="{% url 'reclamar' %}" class="btn btn-secondary btn-sm">Reclamar</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        // Inicializar Flatpickr para el campo due_date
+        flatpickr("#id_due_date", {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            time_24hr: true,
+        });
+
+        // Función para filtrar estudios en la tabla principal
+        function filterStudies() {
+            const filter = document.getElementById('filter-field').value.toLowerCase();
+            const rows = document.querySelectorAll('#study-table-body tr');
+            rows.forEach(row => {
+                const expediente = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
+                const project_name = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                if (expediente.includes(filter) || project_name.includes(filter)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Función para seleccionar/deseleccionar todos los checkboxes en el modal
+        function toggleSelectAllModal(source) {
+            const checkboxes = document.querySelectorAll('.modal-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = source.checked;
+            });
+        }
+
+        // Función para filtrar estudios en el modal
+        function filterStudiesModal() {
+            const filter = document.getElementById('filter-modal-field').value.toLowerCase();
+            const rows = document.querySelectorAll('#modal-study-table-body tr');
+            rows.forEach(row => {
+                const expediente = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                const project_name = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                if (expediente.includes(filter) || project_name.includes(filter)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Funciones para ordenar las columnas en el modal
+        document.addEventListener('DOMContentLoaded', () => {
+            const headerExpediente = document.getElementById('header-expediente');
+            const headerProjectName = document.getElementById('header-project-name');
+
+            let sortOrderExpediente = 'asc';
+            let sortOrderProjectName = 'asc';
+
+            headerExpediente.addEventListener('click', () => {
+                sortTable('expediente', sortOrderExpediente);
+                sortOrderExpediente = sortOrderExpediente === 'asc' ? 'desc' : 'asc';
+            });
+
+            headerProjectName.addEventListener('click', () => {
+                sortTable('project_name', sortOrderProjectName);
+                sortOrderProjectName = sortOrderProjectName === 'asc' ? 'desc' : 'asc';
+            });
+        });
+
+        function sortTable(column, order) {
+            const tableBody = document.getElementById('modal-study-table-body');
+            const rows = Array.from(tableBody.querySelectorAll('tr'));
+
+            rows.sort((a, b) => {
+                let aText, bText;
+                if (column === 'expediente') {
+                    aText = a.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                    bText = b.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                } else if (column === 'project_name') {
+                    aText = a.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                    bText = b.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                }
+
+                if (aText < bText) return order === 'asc' ? -1 : 1;
+                if (aText > bText) return order === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            // Limpiar el tbody y añadir las filas ordenadas
+            tableBody.innerHTML = '';
+            rows.forEach(row => {
+                tableBody.appendChild(row);
+            });
+        }
+    </script>
+{% endblock %}

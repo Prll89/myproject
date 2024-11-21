@@ -1,0 +1,49 @@
+<!-- templates/base_public.html -->
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PRice2Quest{% endblock %}</title>
+    
+    <!-- Google Fonts: DM Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    {% block head %}{% endblock %}
+</head>
+<body class="d-flex flex-column min-vh-100">
+    
+    <!-- Optional Header Section con Sombra Naranja -->
+    <header class="header">
+        <div class="container d-flex justify-content-center align-items-center">
+            <div class="brand text-center">
+                <span class="text-orange">PR</span><span class="text-white">ice</span><span class="text-orange">2</span><span class="text-white">Quest</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container my-4 mt-5">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Optional Footer con Sombra Naranja -->
+    <footer class="footer bg-dark text-white text-center py-2 mt-auto">
+        <p>&copy; 2024 <span class="text-orange">PR</span><span class="text-white">ice</span><span class="text-orange">2</span><span class="text-white">Quest</span>. Todos los derechos reservados.</p>
+    </footer>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Optional JavaScript -->
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Credenciales de Correo{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Editar Credenciales de Correo</h2>
+
+    <!-- Mostrar mensajes de éxito o error -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Formulario de edición de cuenta de correo -->
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+        <!-- Asegúrate de que el nombre de la URL sea correcto -->
+        <a href="{% url 'list_email_accounts' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

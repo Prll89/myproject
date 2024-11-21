@@ -1,0 +1,282 @@
+/* static/css/style.css */
+
+/* Estilos básicos */
+html, body {
+    height: 100%;
+    margin: 0;
+    font-family: 'DM Sans', sans-serif;
+    display: flex;
+    flex-direction: column;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+}
+
+main.container {
+    flex-grow: 1;
+}
+
+/* Header fijo con sombra naranja */
+.header {
+    background-color: #2C3E50; /* Azul oscuro */
+    box-shadow: 0 4px 6px -1px rgba(255, 165, 0, 0.5); /* Sombra naranja */
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 60px;
+    z-index: 1050; /* Mayor que navbar's z-index */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    color: white;
+}
+
+/* Footer fijo con sombra naranja */
+.footer {
+    background-color: #2C3E50; /* Azul oscuro */
+    box-shadow: 0 -4px 6px -1px rgba(255, 165, 0, 0.5); /* Sombra naranja */
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    text-align: center;
+    z-index: 1050; /* Asegurar que está por encima del contenido */
+}
+
+/* Ajustar el espacio para que el contenido no se sobreponga al header o footer */
+main {
+    margin-top: 100px; /* Ajuste para el header y navbar */
+    margin-bottom: 60px; /* Ajuste para el footer */
+}
+
+/* Menú de navegación */
+.navbar {
+    background-color: #2C3E50; /* Azul oscuro */
+    position: fixed;
+    top: 60px; /* Debajo del header */
+    width: 100%;
+    z-index: 1040; /* Menor que header y footer */
+    height: 50px; /* Reducir altura del menú */
+}
+
+/* Ajustar el espaciado interno de los enlaces de navegación */
+.navbar .nav-link {
+    padding: 10px 20px; /* Aumentar el padding para mayor espacio */
+    font-size: 1.1rem; /* Aumentar el tamaño de la fuente para mejor legibilidad */
+    letter-spacing: 0.5px; /* Añadir espacio entre letras */
+}
+
+/* Opcional: Ajustar el margen entre palabras si es necesario */
+.navbar .nav-link {
+    white-space: nowrap; /* Evitar que las palabras se dividan en varias líneas */
+
+}
+
+.navbar .nav-link:hover {
+    color: #FFA500; /* Naranja al pasar el ratón */
+    border-bottom: 2px solid #FFA500;
+}
+
+.navbar .nav-link.active {
+    color: #FFA500;
+}
+
+/* Lista de navegación */
+ul.nav {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+/* Botones y formularios */
+input[type="text"], input[type="email"], input[type="password"], textarea, select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+}
+
+button {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 400;
+}
+
+.btn {
+    border-radius: 4px;
+    padding: 10px 20px;
+    font-size: 1rem;
+}
+
+.btn-primary {
+    background-color: #FFA500; /* Naranja */
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #e69500;
+}
+
+.btn-secondary {
+    background-color: #FF8C42;
+    border: none;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #e57a36;
+}
+
+.btn-outline-light {
+    color: white;
+    border-color: white;
+}
+
+.btn-outline-light:hover {
+    background-color: white;
+    color: #2C3E50;
+}
+
+/* Tablas */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+table th, table td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: center;
+    vertical-align: middle;
+}
+
+table th {
+    background-color: #2C3E50;
+    color: white;
+}
+
+table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+/* Scroll suave */
+html {
+    scroll-behavior: smooth;
+}
+
+.custom-file-upload {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    color: #FFA500; /* Naranja */
+}
+
+.custom-file-upload .material-icons {
+    font-size: 24px;
+    margin-right: 8px;
+}
+
+#file-name {
+    font-size: 16px;
+}
+
+/* Opcional: Change color on hover */
+.custom-file-upload:hover {
+    color: #e69500;
+}
+
+/* Estados de los destinatarios con mayor especificidad */
+ul.list-unstyled li.recipient-item.status-pendiente {
+    background-color: #f2f2f2 !important; /* Fondo gris claro */
+    color: #000000 !important; /* Texto negro */
+}
+
+ul.list-unstyled li.recipient-item.status-reclamado {
+    background-color: #fff3cd !important; /* Fondo amarillo suave */
+    color: #856404 !important; /* Texto marrón oscuro */
+}
+
+ul.list-unstyled li.recipient-item.status-recibido {
+    background-color: #d4edda !important; /* Fondo verde suave */
+    color: #155724 !important; /* Texto verde oscuro */
+}
+
+ul.list-unstyled li.recipient-item.status-rechazado {
+    background-color: #f8d7da !important; /* Fondo rojo suave */
+    color: #721c24 !important; /* Texto rojo oscuro */
+}
+
+/* Estados de los comboboxes con mayor especificidad */
+.form-select.select-pendiente {
+    background-color: #f2f2f2 !important; /* Fondo gris claro */
+    color: #000000 !important; /* Texto negro */
+}
+
+.form-select.select-reclamado {
+    background-color: #fff3cd !important; /* Fondo amarillo suave */
+    color: #856404 !important; /* Texto marrón oscuro */
+}
+
+.form-select.select-recibido {
+    background-color: #d4edda !important; /* Fondo verde suave */
+    color: #155724 !important; /* Texto verde oscuro */
+}
+
+.form-select.select-rechazado {
+    background-color: #f8d7da !important; /* Fondo rojo suave */
+    color: #721c24 !important; /* Texto rojo oscuro */
+}
+
+/* Estados de los archivos con mayor especificidad */
+tr.file-status-pendiente {
+    background-color: #ffffff !important; /* Blanco */
+}
+
+tr.file-status-reclamado {
+    background-color: #fff3cd !important; /* Fondo amarillo suave */
+}
+
+tr.file-status-recibido {
+    background-color: #d4edda !important; /* Fondo verde suave */
+}
+
+tr.file-status-rechazado {
+    background-color: #f8d7da !important; /* Fondo rojo suave */
+}
+
+/* Estilos generales de la lista de destinatarios */
+.recipient-item {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Estilos para los toasts */
+.toast-success {
+    background-color: #28a745 !important; /* Verde Bootstrap */
+}
+
+.toast-error {
+    background-color: #dc3545 !important; /* Rojo Bootstrap */
+}

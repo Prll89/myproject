@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+    <h2>Eventos para el {{ date }}</h2>
+    
+    {% if events %}
+        <ul class="list-group">
+            {% for event in events %}
+                <li class="list-group-item">
+                    {{ event.title }} ({{ event.start_date }} - {{ event.end_date }})
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No hay eventos para este día.</p>
+    {% endif %}
+    
+    <a href="{% url 'calendar' %}" class="btn btn-secondary mt-3">Volver al calendario</a>
+</div>
+{% endblock %}

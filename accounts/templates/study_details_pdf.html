@@ -1,0 +1,93 @@
+<!-- accounts/templates/study_details_pdf.html -->
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Detalles del Estudio - {{ study.expediente }}</title>
+    <style>
+        @page {
+            margin: 10mm 10mm 20mm 10mm; /* top, right, bottom, left */
+        }
+        body {
+            font-family: Calibri, Arial, sans-serif;
+            margin: 0; /* Margen ya definido por @page */
+            color: #000;
+        }
+        /* Encabezado con detalles del estudio */
+        .header {
+            margin-bottom: 10px; /* Aumentar ligeramente el margen inferior */
+        }
+        .header p {
+            margin: 2px 0;
+            font-size: 14px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px; /* Espacio entre encabezado y tabla */
+            font-size: 12px;
+        }
+        th, td {
+            border: 1px solid #333;
+            padding: 8px;
+            text-align: center; /* Centramos horizontalmente */
+            vertical-align: middle;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        /* Colores de fondo según el estado */
+        .Recibido {
+            background-color: #d4edda;
+        }
+        .Rechazado {
+            background-color: #f8d7da;
+        }
+        .Reclamado {
+            background-color: #fff3cd;
+        }
+        .Pendiente {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <!-- Encabezado con detalles del estudio -->
+    <div class="header">
+        <p><strong>Expediente:</strong> {{ study.expediente }}</p>
+        <p><strong>Nombre del Proyecto:</strong> {{ study.project_name }}</p>
+        <p><strong>Fecha de Entrega:</strong> {{ study.due_date }}</p>
+        <p><strong>Estado del Estudio:</strong> {{ estado }}</p>
+    </div>
+
+    <!-- Tabla de archivos y destinatarios -->
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre del Archivo</th>
+                <th>Nombre del Contacto</th>
+                <th>Correo Electrónico</th>
+                <th>Teléfono</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for file_id, file_data in correos_enviados.items %}
+                {% for recipient in file_data.recipients %}
+                    <tr>
+                        {% if forloop.first %}
+                            <td rowspan="{{ file_data.recipients|length }}" class="{{ file_data.file_status }}">{{ file_data.file.original_name }}</td>
+                        {% endif %}
+                        <td class="{{ recipient.status }}">{{ recipient.name }}</td>
+                        <td class="{{ recipient.status }}">{{ recipient.email }}</td>
+                        <td class="{{ recipient.status }}">{{ recipient.phone }}</td>
+                        <td class="{{ recipient.status }}">{{ recipient.status }}</td>
+                    </tr>
+                {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

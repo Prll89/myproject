@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Inicio{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="jumbotron text-center">
+        <h1 class="display-4">Bienvenido a Mi Plataforma</h1>
+        <p class="lead">Gestiona tus estudios, contactos y más desde un solo lugar.</p>
+        <hr class="my-4">
+        <p>
+            <a class="btn btn-primary btn-lg" href="{% url 'login' %}" role="button">Iniciar sesión</a>
+            <a class="btn btn-secondary btn-lg" href="{% url 'register' %}" role="button">Registrarse</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

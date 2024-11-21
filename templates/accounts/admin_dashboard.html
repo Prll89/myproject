@@ -1,0 +1,319 @@
+<!-- templates/accounts/admin_dashboard.html -->
+
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}  <!-- Asegúrate de tener este filtro si lo usas -->
+
+{% block title %}Administración - PRice2Quest{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Administración</h1>
+
+    <!-- Sección para Crear Departamento (Solo Administrador Total) -->
+    {% if is_admin_total %}
+        <div class="mb-4">
+            <h3>Crear Nuevo Departamento</h3>
+            <form method="post" class="row g-3">
+                {% csrf_token %}
+                <div class="col-md-12">
+                    {{ dept_form.name.label_tag }}
+                    {{ dept_form.name|add_class:"form-control" }}
+                    {% if dept_form.name.errors %}
+                        <div class="text-danger">
+                            {{ dept_form.name.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-12">
+                    <button type="submit" name="create_department" class="btn btn-success">Crear Departamento</button>
+                </div>
+            </form>
+        </div>
+    {% endif %}
+
+    <!-- Sección para Listar y Gestionar Departamentos (Solo Administrador Total) -->
+    {% if is_admin_total %}
+        <div class="mb-4">
+            {% if company.departments.all %}
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for department in company.departments.all %}
+                            <tr>
+                                <td>{{ department.name }}</td>
+                                <td>
+                                    <!-- Botón Editar -->
+                                    <button type="button" class="btn btn-primary btn-sm me-2" data-bs-toggle="modal" data-bs-target="#editDepartmentModal{{ department.id }}">
+                                        Editar
+                                    </button>
+
+                                    <!-- Modal Editar Departamento -->
+                                    <div class="modal fade" id="editDepartmentModal{{ department.id }}" tabindex="-1" aria-labelledby="editDepartmentModalLabel{{ department.id }}" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <form method="post">
+                                                    {% csrf_token %}
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="editDepartmentModalLabel{{ department.id }}">Editar Departamento</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <input type="hidden" name="department_id" value="{{ department.id }}">
+                                                        <div class="mb-3">
+                                                            <label for="departmentName{{ department.id }}" class="form-label">Nombre</label>
+                                                            <input type="text" class="form-control" id="departmentName{{ department.id }}" name="department_name" value="{{ department.name }}" required>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                        <button type="submit" name="edit_department" class="btn btn-primary">Guardar Cambios</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Botón Eliminar (excepto para el departamento "Todos") -->
+                                    {% if department.name != "Todos" %}
+                                        <form method="post" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="department_id" value="{{ department.id }}">
+                                            <button type="submit" name="delete_department" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de eliminar este departamento? Se eliminarán todos los usuarios asociados.')">
+                                                Eliminar
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>No hay departamentos creados aún.</p>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <!-- Sección para Aprobar Usuarios Pendientes -->
+    <div class="mb-4">
+        <h3>Agregar nuevos usuarios</h3>        
+        {% if pending_users.exists %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Nombre de Usuario</th>
+                        <th>Email</th>
+                        <th>Departamento</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user_profile in pending_users %}
+                        <tr>
+                            <td>{{ user_profile.user.username }}</td>
+                            <td>{{ user_profile.user.email }}</td>
+                            <td>
+                                {% if user_profile.department %}
+                                    {{ user_profile.department.name }}
+                                {% else %}
+                                    Sin Departamento
+                                {% endif %}
+                            </td>
+                            <td>
+                                <form method="post" class="d-inline me-2">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="user_id" value="{{ user_profile.user.id }}">
+                                    <input type="hidden" name="action" value="approve">
+                                    <button type="submit" name="approve_user" class="btn btn-success btn-sm">Aprobar</button>
+                                </form>
+                                <form method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="user_id" value="{{ user_profile.user.id }}">
+                                    <input type="hidden" name="action" value="decline">
+                                    <button type="submit" name="approve_user" class="btn btn-danger btn-sm">Rechazar</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No hay usuarios pendientes de aprobación.</p>
+        {% endif %}
+    </div>
+
+    <!-- Sección para Listar Usuarios Aprobados -->
+    <div class="mb-4">
+        {% if users.exists %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Nombre de Usuario</th>
+                        <th>Email</th>
+                        <th>Rol</th>
+                        <th>Departamento</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user_profile in users %}
+                        <tr>
+                            <td>{{ user_profile.user.username }}</td>
+                            <td>{{ user_profile.user.email }}</td>
+                            <td>{{ user_profile.get_role_display }}</td>
+                            <td>
+                                {% if user_profile.department %}
+                                    {{ user_profile.department.name }}
+                                {% else %}
+                                    Sin Departamento
+                                {% endif %}
+                            </td>
+                            <td>
+                                <!-- Solo Administrador Total puede eliminar o modificar cualquier usuario -->
+                                {% if is_admin_total %}
+                                    <form method="post" class="d-inline me-2">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="delete_user_id" value="{{ user_profile.user.id }}">
+                                        <button type="submit" name="delete_user" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de eliminar este usuario?')">
+                                            Eliminar
+                                        </button>
+                                    </form>
+                                    <!-- Botón para Modificar Rol y Departamento -->
+                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modifyUserModal{{ user_profile.user.id }}">
+                                        Modificar
+                                    </button>
+
+                                    <!-- Modal Modificar Usuario -->
+                                    <div class="modal fade" id="modifyUserModal{{ user_profile.user.id }}" tabindex="-1" aria-labelledby="modifyUserModalLabel{{ user_profile.user.id }}" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <form method="post">
+                                                    {% csrf_token %}
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="modifyUserModalLabel{{ user_profile.user.id }}">Modificar Usuario: {{ user_profile.user.username }}</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <input type="hidden" name="modify_user_id" value="{{ user_profile.user.id }}">
+                                                        <div class="mb-3">
+                                                            <label for="new_role{{ user_profile.user.id }}" class="form-label">Rol</label>
+                                                            <select name="new_role" id="new_role{{ user_profile.user.id }}" class="form-select" required>
+                                                                <option value="">Selecciona un rol</option>
+                                                                {% for key, value in user_profile.ROLE_CHOICES %}
+                                                                    <option value="{{ key }}" {% if user_profile.role == key %}selected{% endif %}>{{ value }}</option>
+                                                                {% endfor %}
+                                                            </select>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label for="new_department{{ user_profile.user.id }}" class="form-label">Departamento</label>
+                                                            <select name="new_department" id="new_department{{ user_profile.user.id }}" class="form-select">
+                                                                <option value="">Sin Departamento</option>
+                                                                {% for department in departments %}
+                                                                    <option value="{{ department.id }}" {% if user_profile.department and user_profile.department.id == department.id %}selected{% endif %}>{{ department.name }}</option>
+                                                                {% endfor %}
+                                                            </select>
+                                                            <div class="form-text">Selecciona un departamento si el rol lo requiere.</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                        <button type="submit" name="modify_user" class="btn btn-primary">Guardar Cambios</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% elif is_admin_departamento %}
+                                    <!-- Administrador de Departamento solo puede eliminar usuarios de su departamento -->
+                                    <form method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="delete_user_id" value="{{ user_profile.user.id }}">
+                                        <button type="submit" name="delete_user" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de eliminar este usuario?')">
+                                            Eliminar
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No hay usuarios aprobados disponibles para gestionar.</p>
+        {% endif %}
+    </div>
+
+    <!-- Sección para Editar Datos de la Empresa (Solo Administrador Total) -->
+    {% if is_admin_total %}
+        <div class="mb-4">
+            <h3>Editar Datos de la Empresa</h3>
+            <!-- Botón para Abrir el Modal de Edición Completa -->
+            <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#editCompanyModal">
+                Editar Empresa
+            </button>
+
+            <!-- Modal Editar Empresa -->
+            <div class="modal fade" id="editCompanyModal" tabindex="-1" aria-labelledby="editCompanyModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">  <!-- Aumentar el tamaño del modal para acomodar todos los campos -->
+                    <div class="modal-content">
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="editCompanyModalLabel">Editar Datos de la Empresa</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                            </div>
+                            <div class="modal-body">
+                                {{ company_form.as_p }}
+                                <!-- Si hay más campos en el modelo Company, se mostrarán automáticamente -->
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="submit" name="edit_company" class="btn btn-primary">Guardar Cambios</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Función para manejar el desbloqueo del campo de Departamento
+    document.addEventListener('DOMContentLoaded', function() {
+        // Obtener todos los formularios de cambio de rol
+        const roleChangeForms = document.querySelectorAll('.role-change-form');
+
+        roleChangeForms.forEach(function(form) {
+            const roleSelect = form.querySelector('.role-select');
+            const departmentSelect = form.querySelector('.department-select');
+
+            // Función para actualizar el estado del departamento
+            const updateDepartmentField = () => {
+                if (roleSelect.value === 'ADMIN_DEPARTAMENTO' || roleSelect.value === 'TECNICO_DEPARTAMENTO') {
+                    departmentSelect.disabled = false;
+                    departmentSelect.required = true;
+                } else {
+                    departmentSelect.disabled = true;
+                    departmentSelect.required = false;
+                    departmentSelect.value = '';
+                }
+            };
+
+            // Inicializar el estado al cargar la página
+            updateDepartmentField();
+
+            // Escuchar cambios en el select de rol
+            roleSelect.addEventListener('change', updateDepartmentField);
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,211 @@
+<!-- accounts/templates/reclamar.html -->
+
+{% extends 'base.html' %}
+{% load custom_tags split_tags %}
+{% load static %}
+
+{% block title %}Reclamar{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Reclamar</h2>
+
+    <!-- Mostrar mensajes -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <form method="GET" action="{% url 'reclamar' %}" class="d-flex w-100">
+            <div class="me-3 flex-grow-1">
+                <label for="study" class="form-label">Seleccionar Estudio</label>
+                <select id="study" name="study" class="form-select" required onchange="this.form.submit();">
+                    <option value="">Seleccione un estudio</option>
+                    {% for study in studies %}
+                        <option value="{{ study.id }}" {% if study.id|stringformat:"s" == selected_study_id|stringformat:"s" %}selected{% endif %}>
+                            {{ study.expediente }} - {{ study.project_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+    </div>
+
+    {% if selected_study %}
+        {% if already_sent %}
+            <div class="alert alert-info d-flex justify-content-between align-items-center">
+                <span>Este estudio ya fue enviado el {{ sent_at|date:"d/m/Y H:i" }}.</span>
+                <a href="{% url 'study_details' selected_study.id %}" class="btn btn-primary btn-sm">Detalles</a>
+            </div>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Archivo Generado</th>
+                        <th>Destinatarios Enviados</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in sent_files %}
+                        <tr>
+                            <td>{{ item.file.original_name }}</td>
+                            <td>
+                                {% if item.recipients %}
+                                    {% for recipient in item.recipients %}
+                                        {{ recipient.name }} ({{ recipient.email }})<br>
+                                    {% endfor %}
+                                {% else %}
+                                    No se han enviado destinatarios para este archivo.
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+        {% if already_claimed %}
+            <div class="alert alert-info d-flex justify-content-between align-items-center">
+                <span>Este estudio ya fue reclamado el {{ claimed_at|date:"d/m/Y H:i" }}.</span>
+                <a href="{% url 'study_details' selected_study.id %}" class="btn btn-primary btn-sm">Detalles</a>
+            </div>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Archivo Generado</th>
+                        <th>Destinatarios Reclamados</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in claimed_files %}
+                        <tr>
+                            <td>{{ item.file.original_name }}</td>
+                            <td>
+                                {% if item.recipients %}
+                                    {% for recipient in item.recipients %}
+                                        {{ recipient.name }} ({{ recipient.email }})<br>
+                                    {% endfor %}
+                                {% else %}
+                                    No se han reclamado destinatarios para este archivo.
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+        {% if study_not_processed %}
+            <div class="alert alert-warning">
+                Este estudio aún no ha sido procesado.
+            </div>
+        {% endif %}
+        {% if not study_not_processed %}
+            <form method="POST" action="{% url 'reclamar' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <!-- Campo oculto para 'study' -->
+                {{ form.study.as_hidden }}
+
+                <div class="mb-3">
+                    {{ form.from_email.label_tag }}
+                    {{ form.from_email }}
+                    {{ form.from_email.errors }}
+                    <a href="{% url 'add_email_account' %}" class="btn btn-secondary ms-2">Agregar Cuenta</a>
+                    {% if form.from_email.value %}
+                        <a href="{% url 'edit_email_account' form.from_email.value %}" class="btn btn-secondary ms-2">Editar Cuenta</a>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.subject.label_tag }}
+                    {{ form.subject }}
+                    {{ form.subject.errors }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.body.label_tag }}
+                    {{ form.body }}
+                    {{ form.body.errors }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.cc.label_tag }}
+                    {{ form.cc }}
+                    {{ form.cc.errors }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.bcc.label_tag }}
+                    {{ form.bcc }}
+                    {{ form.bcc.errors }}
+                </div>
+
+                <div class="mb-4">
+                    <h4>Seleccionar Destinatarios para Reclamación</h4>
+                    {% if recent_files %}
+                        {% for file in recent_files %}
+                        <div class="mb-3">
+                            <h5><strong>{{ file.original_name }}</strong></h5>
+                            {% if file.recipients %}
+                                <p>Ya reclamado a:</p>
+                                {% for recipient in file.recipients %}
+                                    {% if recipient.status == 'Reclamado' %}
+                                        {{ recipient.name }} ({{ recipient.email }})<br>
+                                    {% endif %}
+                                {% endfor %}
+                                <div style="margin-bottom: 10px;"></div>
+                            {% endif %}
+                            <input type="text" id="filter_contacts_{{ file.id }}" class="form-control mb-2" placeholder="Filtrar contactos" onkeyup="filterContacts(this, '{{ file.id }}')">
+
+                            <!-- Botón de Ordenar por Tasa de Éxito -->
+                            <div class="d-flex justify-content-end mb-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="sort_button_{{ file.id }}" onclick="toggleSort('{{ file.id }}')">
+                                    Ordenar por Tasa de Éxito
+                                </button>
+                            </div>
+
+                            <div class="contact-list" id="contact_list_{{ file.id }}" style="max-height: 150px; overflow-y: auto; border: 1px solid #ccc; padding: 10px;">
+                                {% if file.recipients %}
+                                    {% for recipient in file.recipients %}
+                                        {% if recipient.status != 'Reclamado' %}
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" 
+                                                       name="recipients_{{ file.id }}[]" 
+                                                       value="{{ recipient.id }}" 
+                                                       id="contact_{{ recipient.id }}_{{ file.id }}"
+                                                       {% if recipient.id in selected_contacts|get_item:file.id %}checked{% endif %}>
+                                                <label class="form-check-label d-flex justify-content-between align-items-center" for="contact_{{ recipient.id }}_{{ file.id }}">
+                                                    <div>
+                                                        {{ recipient.name }} ({{ recipient.email }}) - 
+                                                        {% for gremio in recipient.gremio|split:", " %}
+                                                            <span style="background-color: {{ gremio_colors|get_item:gremio }}; color: black; padding: 2px 5px; border-radius: 3px;">{{ gremio }}</span>{% if not forloop.last %}, {% endif %}
+                                                        {% endfor %}
+                                                    </div>
+                                                    <span class="badge badge-orange" data-success-rate="{{ contact_success_rates|get_item:recipient.id|floatformat:2 }}">
+                                                        Tasa de Éxito: {{ contact_success_rates|get_item:recipient.id|floatformat:2 }}%
+                                                    </span>
+                                                </label>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    <p>No hay contactos disponibles.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p>No se encontraron archivos con contactos en los estados especificados.</p>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary" name="send_claim">Enviar Reclamos</button>
+            </form>
+        {% endif %}
+    {% endif %}
+</div>
+{% endblock %}
+
+<!-- Comentamos temporalmente el bloque extra_js para descartar problemas de JavaScript -->
+{# {% block extra_js %} ... {% endblock %} #}

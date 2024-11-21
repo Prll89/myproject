@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    <section class="content-container">
+        <h2>Archivos Procesados</h2>
+        <ul>
+            {% for file in files %}
+                <li>{{ file.file_name }} - <a href="{% url 'download_processed_data' file.pk %}">Descargar</a></li>
+            {% endfor %}
+        </ul>
+    </section>
+{% endblock %}
+
+<style>
+    .content-container {
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+        background-color: #f4f4f4;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .content-container h2 {
+        font-family: 'Cairo Play', sans-serif;
+    }
+
+    ul {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    ul li {
+        margin: 10px 0;
+        font-family: 'Roboto', sans-serif;
+    }
+</style>
+

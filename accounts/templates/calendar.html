@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <div id="calendar"></div>
+        </div>
+
+        <div class="col-md-4">
+            <h3 id="form-title">Agregar Evento</h3>
+            <form method="POST" enctype="multipart/form-data" id="event-form">
+                {% csrf_token %}
+                <input type="hidden" name="event-id" id="event-id">
+                
+                <!-- Asignar a Estudio -->
+                <div class="mb-3">
+                    <label for="study_id" class="form-label">Asignar a Estudio</label>
+                    {{ form.study_id }}
+                </div>
+
+                <div class="mb-3">
+                    <label for="title" class="form-label">Título del Evento</label>
+                    {{ form.title }}
+                </div>
+
+                <div class="mb-3">
+                    <label for="start_date" class="form-label">Fecha y Hora de Inicio</label>
+                    {{ form.start_date }}
+                </div>
+
+                <div class="mb-3">
+                    <label for="end_date" class="form-label">Fecha y Hora de Finalización</label>
+                    {{ form.end_date }}
+                </div>
+                
+                <button type="submit" class="btn btn-primary" id="submit-button">Agregar Evento</button>
+                <button type="button" class="btn btn-danger" id="delete-button" style="display:none;">Eliminar</button>
+                <button type="button" class="btn btn-secondary" id="cancel-button" style="display:none;">Cancelar</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Include FullCalendar scripts and Flatpickr -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/locales/es.js"></script> <!-- Load Spanish locale -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            locale: 'es',  // Set the calendar language to Spanish
+            initialView: 'dayGridMonth',
+            events: {{ events|safe }},
+            eventDisplay: 'block',  // Ensure events display as bars
+            displayEventTime: false,  // Disable time display to remove "10a", "10p", etc.
+            eventClick: function(info) {
+                if (!info.event.extendedProps.is_delivery) {
+                    // Show the event form with the current event's details for editing
+                    document.getElementById('form-title').innerText = 'Editar Evento';
+                    document.getElementById('event-id').value = info.event.id;
+                    document.getElementById('id_title').value = info.event.title.split(" - ")[1];  // Only the title
+                    document.getElementById('id_study_id').value = info.event.extendedProps.study_id;
+                    document.getElementById('id_start_date').value = info.event.start.toISOString().slice(0, 16);
+                    document.getElementById('id_end_date').value = info.event.end ? info.event.end.toISOString().slice(0, 16) : '';
+                    document.getElementById('submit-button').innerText = 'Guardar Cambios';
+                    document.getElementById('submit-button').classList.remove('btn-primary');
+                    document.getElementById('submit-button').classList.add('btn-success');
+                    document.getElementById('delete-button').style.display = 'inline'; // Show delete button
+                    document.getElementById('cancel-button').style.display = 'inline'; // Show cancel button
+                } else {
+                    // Prevent editing for deliveries with a custom message
+                    alert('No se pueden editar entregas. Para modificar la entrega, por favor dirígete a la sección de Estudios.');
+                }
+            }
+        });
+
+        calendar.render();
+    });
+
+    // Initialize Flatpickr for start and end date fields
+    flatpickr("#id_start_date", {
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+        time_24hr: true,
+        defaultDate: document.getElementById('id_start_date').value || null
+    });
+
+    flatpickr("#id_end_date", {
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+        time_24hr: true,
+        defaultDate: document.getElementById('id_end_date').value || null
+    });
+
+    // Event listener for cancel button
+    document.getElementById('cancel-button').addEventListener('click', function() {
+        document.getElementById('form-title').innerText = 'Agregar Evento';
+        document.getElementById('event-form').reset();
+        document.getElementById('submit-button').innerText = 'Agregar Evento';
+        document.getElementById('submit-button').classList.remove('btn-success');
+        document.getElementById('submit-button').classList.add('btn-primary');
+        document.getElementById('delete-button').style.display = 'none';
+        document.getElementById('cancel-button').style.display = 'none';
+    });
+
+    // Event listener for delete button
+    document.getElementById('delete-button').addEventListener('click', function() {
+        var eventId = document.getElementById('event-id').value;
+        if (eventId) {
+            if (confirm('¿Estás seguro de que deseas eliminar este evento?')) {
+                var deleteForm = document.createElement('form');
+                deleteForm.method = 'POST';
+                deleteForm.action = '';  // Set the correct action if needed
+                var csrfToken = document.createElement('input');
+                csrfToken.type = 'hidden';
+                csrfToken.name = 'csrfmiddlewaretoken';
+                csrfToken.value = '{{ csrf_token }}';
+                var deleteInput = document.createElement('input');
+                deleteInput.type = 'hidden';
+                deleteInput.name = 'delete-event';
+                deleteInput.value = eventId;
+                deleteForm.appendChild(csrfToken);
+                deleteForm.appendChild(deleteInput);
+                document.body.appendChild(deleteForm);
+                deleteForm.submit();
+            }
+        }
+    });
+</script>
+
+<!-- Apply bold text for deliveries -->
+<style>
+    .fc-event.is-delivery .fc-event-title {
+        font-weight: bold !important;
+    }
+</style>
+
+{% endblock %}
